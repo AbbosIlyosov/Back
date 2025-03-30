@@ -1,38 +1,85 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Servicar.Application.Features.Point.Commands;
+using Servicar.Application.Features.Point.Queries;
+using ServiCar.Domain.DTOs;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace ServiCar.API.Controllers
 {
     [ApiController, Route("api/[controller]")]
     public class PointController : Controller
     {
-        [HttpGet, Route("get-by-id")]
-        public IActionResult GetPointById(int id)
+        private readonly IMediator _mediator;
+        public PointController(IMediator mediator)
         {
-            return Ok("Hello World");
+            _mediator = mediator;
+        }
+
+        [HttpGet, Route("get-by-id")]
+        public async Task<IActionResult> GetPointById(int id)
+        {
+            var result = await _mediator.Send(new GetPointByIdQuery(id));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpGet, Route("filtered")]
-        public IActionResult GetPointsFiltered(int id)
+        public async Task<IActionResult> GetPointsFiltered([FromQuery] PointFilterDTO dto)
         {
-            return Ok($"Hello World {id}");
+            var result = await _mediator.Send(new GetPointFilteredQuery(dto));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpPost, Route("create")]
-        public IActionResult CreatePoint(int id)
+        public async Task<IActionResult> CreatePoint([FromBody] CreatePointDTO dto)
         {
-            return Ok($"Hello World {id}");
+            var result = await _mediator.Send(new CreatePointCommand(dto));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return StatusCode((int)HttpStatusCode.Created, result.Data);
         }
 
         [HttpPut, Route("update")]
-        public IActionResult UpdatePoint(int id)
+        public async Task<IActionResult> UpdatePoint([FromBody] UpdatePointDTO dto)
         {
-            return Ok();
+            var result = await _mediator.Send(new UpdatePointCommand(dto));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpDelete, Route("delete")]
-        public IActionResult DeletePoint(int id)
+        public async Task<IActionResult> DeletePoint(int id)
         {
-            return Ok();
+            var result = await _mediator.Send(new DeletePointCommand(id));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
     }
 }

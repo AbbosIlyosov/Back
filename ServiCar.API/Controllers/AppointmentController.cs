@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Servicar.Application.Features.Appointment.Commands;
 using Servicar.Application.Features.Appointment.Queries;
+using ServiCar.Domain.DTOs;
 
 namespace ServiCar.API.Controllers
 {
@@ -17,31 +18,49 @@ namespace ServiCar.API.Controllers
         }
 
         [HttpGet("filtered")]
-        public async Task<IActionResult> GetAppointmentFiltered([FromQuery] GetAppointmentFilteredQuery query)
+        public async Task<IActionResult> GetAppointmentFiltered([FromQuery] AppointmentFilterDTO filter)
         {
-            var result = await _mediator.Send(query);
-            return Ok(result);
+            var result = await _mediator.Send(new GetAppointmentFilteredQuery(filter));
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateAppointment([FromBody] CreateAppointmentCommand command)
+        public async Task<IActionResult> CreateAppointment([FromBody] AppointmentCreateDTO dto)
         {
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            var result = await _mediator.Send(new CreateAppointmentCommand(dto));
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.Data);
+            }
+
+            return BadRequest(result.Error);
         }
 
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateAppointment([FromBody] UpdateAppointmentCommand command)
+        public async Task<IActionResult> UpdateAppointment([FromBody] AppointmentUpdateDTO dto)
         {
-            await _mediator.Send(command);
+            await _mediator.Send(new UpdateAppointmentCommand(dto));
             return NoContent();
         }
 
         [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteAppointment([FromQuery] DeleteAppointmentCommand command)
+        public async Task<IActionResult> DeleteAppointment([FromQuery] int id)
         {
-            await _mediator.Send(command);
-            return NoContent();
+            var result = await _mediator.Send(new DeleteAppointmentCommand(id));
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok("Appointment deleted successfully.");
         }
     }
 }

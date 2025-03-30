@@ -1,21 +1,22 @@
 ﻿using MediatR;
-using Servicar.Domain.DTOs;
 using ServiCar.Domain.DTOs;
+using ServiCar.Domain.Generics;
+using ServiCar.Infrastructure.Services;
 
 namespace Servicar.Application.Features.Appointment.Queries
 {
-    public record GetAppointmentFilteredQuery(AppointmentFilterDTO filter) : IRequest<ResponseDTO>;
+    public record GetAppointmentFilteredQuery(AppointmentFilterDTO filter) : IRequest<Result<List<AppointmentDTO>, ErrorDTO>>;
 
-    public class GetAppointmentFilteredQueryHandler : IRequestHandler<GetAppointmentFilteredQuery, ResponseDTO>
+    public class GetAppointmentFilteredQueryHandler : IRequestHandler<GetAppointmentFilteredQuery, Result<List<AppointmentDTO>, ErrorDTO>>
     {
-        public GetAppointmentFilteredQueryHandler()
+        private readonly IAppointmentService _appointmentService;
+        public GetAppointmentFilteredQueryHandler(IAppointmentService appointmentService)
         {
-
+            _appointmentService = appointmentService;
         }
-
-        public Task<ResponseDTO> Handle(GetAppointmentFilteredQuery request, CancellationToken cancellationToken)
+        public async Task<Result<List<AppointmentDTO>, ErrorDTO>> Handle(GetAppointmentFilteredQuery request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _appointmentService.GetAppointments(request.filter);
         }
     }
 

@@ -68,26 +68,13 @@ namespace Servicar.Infrastruture.Services
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            string token = GenerateAccessToken(authClaims);
+            var tokenData = GenerateAccessToken(authClaims);
+            tokenData.UserId = user.Id;
+            tokenData.Roles = userRoles.ToList();
 
             response.IsSuccess = true;
             response.Message = "User logged in successfully.";
-            response.Data = new LoginResponseDataDTO
-            {
-                AccessToken = token,
-                RefreshToken = GenerateRefreshToken(),
-                User = new UserDTO
-                {
-                    Id = user.Id,
-                    Username = user.UserName,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    PhoneNumber = user.PhoneNumber,
-                    IsCompanyWorker = user.IsCompanyWorker,
-                    Roles = userRoles
-                }
-            };
+            response.Data = tokenData;
 
             return response;
         }
@@ -159,11 +146,11 @@ namespace Servicar.Infrastruture.Services
             return response;
         }
 
-        private string GenerateAccessToken(IEnumerable<Claim> claims)
+        private LoginResponseDataDTO GenerateAccessToken(IEnumerable<Claim> claims)
         {
             var authSiginingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]));
             var _TokenExpiryTimeInMinutes = Convert.ToInt16(_configuration["Jwt:ExpiryTimeInMinute"]);
-            var tokeDescriptor = new SecurityTokenDescriptor
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = _configuration["Jwt:Issuer"],
                 Audience = _configuration["Jwt:Audience"],
@@ -173,8 +160,15 @@ namespace Servicar.Infrastruture.Services
                 SigningCredentials = new SigningCredentials(authSiginingKey, SecurityAlgorithms.HmacSha256)
             };
             var tokenHandler = new JwtSecurityTokenHandler();
-            var securityToken = tokenHandler.CreateToken(tokeDescriptor);
-            return tokenHandler.WriteToken(securityToken);
+            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+
+            var tokenModel = new LoginResponseDataDTO
+            {
+                AccessToken = tokenHandler.WriteToken(securityToken),
+                ExpireDate = tokenDescriptor.Expires
+            };
+
+            return tokenModel;
         }
 
         private string GenerateRefreshToken()
@@ -227,7 +221,7 @@ namespace Servicar.Infrastruture.Services
 
             //_userContext.SaveChanges();
 
-            return (true, new TokenRefreshResponseDTO { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
+            return (true, new TokenRefreshResponseDTO { AccessToken = newAccessToken.AccessToken, RefreshToken = newRefreshToken });
         }
 
         public bool Revoke(string username)

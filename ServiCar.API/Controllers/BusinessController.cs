@@ -1,33 +1,78 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Servicar.Application.Features.Business.Commands;
+using Servicar.Application.Features.Business.Queries;
+using ServiCar.Domain.DTOs;
+using System.Threading.Tasks;
 
 namespace ServiCar.API.Controllers
 {
     [ApiController, Route("api/[controller]")]
     public class BusinessController : Controller
     {
-        [HttpGet, Route("get-all")]
-        public IActionResult GetAllBusinesses()
+        private readonly IMediator _mediator;
+
+        public BusinessController(IMediator mediator)
         {
-            return Ok();
+            _mediator = mediator;
         }
 
-        [HttpPost, Route("create"), Authorize(Roles = "Admin")]
-        public IActionResult CreateBusiness()
+        [HttpGet, Route("get-all")]
+        public async Task<IActionResult> GetAllBusinesses()
         {
-            return Ok();
+            var result = await _mediator.Send(new GetAllBusinessesQuery());
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            if (!result.Data.Any()) 
+            {
+                return NotFound("No businesses found");
+            }
+
+            return Ok(result.Data);
+        }
+
+        [HttpPost, Route("create")]
+        public async Task<IActionResult> CreateBusiness([FromBody] BusinessCreateDTO dto)
+        {
+            var result = await _mediator.Send(new CreateBusinessCommand(dto));
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpPut, Route("update")]
-        public IActionResult UpdateBusiness(int id)
+        public async Task<IActionResult> UpdateBusiness([FromBody] BusinessUpdateDTO dto)
         {
-            return Ok();
+            var result = await _mediator.Send(new UpdateBusinessCommand(dto));
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpPut, Route("update-status")]
-        public IActionResult UpdateBusinessStatus(int id)
+        public async Task<IActionResult> UpdateBusinessStatus([FromBody] BusinessStatusUpdateDTO dto)
         {
-            return Ok();
+            var result = await _mediator.Send(new UpdateBusinessStatusCommand(dto)); 
+            
+            if (!result.IsSuccess) 
+            { 
+                return BadRequest(result.Error); 
+            }
+
+            return Ok(result.Data);
         }
     }
 }

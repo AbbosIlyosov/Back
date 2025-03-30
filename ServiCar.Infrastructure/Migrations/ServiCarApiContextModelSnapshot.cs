@@ -113,23 +113,6 @@ namespace ServiCar.Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("IdentityUserRole<int>");
 
                     b.UseTphMappingStrategy();
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            RoleId = 2
-                        },
-                        new
-                        {
-                            UserId = 3,
-                            RoleId = 3
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -149,6 +132,274 @@ namespace ServiCar.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Appointment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("AppointmentTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrderNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PointId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Appointments");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Business", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AboutUs")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("BusinessStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ImageId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PointsCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageId")
+                        .IsUnique()
+                        .HasFilter("[ImageId] IS NOT NULL");
+
+                    b.ToTable("Businesses");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Image", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("FileData")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewId");
+
+                    b.ToTable("Images");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Location", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Latitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal>("Longitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Point", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusinessId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAppointmentAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PointName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PointStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WorkingTimeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("WorkingTimeId");
+
+                    b.ToTable("Points");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PointId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("PointId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Role", b =>
@@ -179,29 +430,6 @@ namespace ServiCar.Infrastructure.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("Roles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ConcurrencyStamp = "1",
-                            Name = "User",
-                            NormalizedName = "USER"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ConcurrencyStamp = "2",
-                            Name = "Worker",
-                            NormalizedName = "WORKER"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ConcurrencyStamp = "3",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        });
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.User", b =>
@@ -213,6 +441,9 @@ namespace ServiCar.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BusinessId")
                         .HasColumnType("int");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -272,6 +503,8 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BusinessId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -281,65 +514,35 @@ namespace ServiCar.Infrastructure.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
+                });
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "16693498-ec8d-4fe5-b650-0510e660ace9",
-                            Email = "user@test.com",
-                            EmailConfirmed = false,
-                            FirstName = "Leonardo",
-                            IsCompanyWorker = false,
-                            LastName = "Decaprio",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "USER@TEST.COM",
-                            NormalizedUserName = "LDECAP",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEvyytRCeGRDy98Tv4JlCGf0SbnwuhCb6jhQlYR5U9taFYzVJAEiA+mvYneoPw2YbA==",
-                            PhoneNumber = "1234567890",
-                            PhoneNumberConfirmed = false,
-                            TwoFactorEnabled = false,
-                            UserName = "ldecap"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "3aee55d3-f4b1-42ef-a453-7a43c9c98dee",
-                            Email = "worker@test.com",
-                            EmailConfirmed = false,
-                            FirstName = "Tony",
-                            IsCompanyWorker = true,
-                            LastName = "Stark",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "WORKER@TEST.COM",
-                            NormalizedUserName = "TSTARK",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOfBfUSTMrRrvkz9ElayIUpaaH2fNsUAf29KMAfB607yACBO3ogFZkae0W9xEnxwMQ==",
-                            PhoneNumber = "1234567890",
-                            PhoneNumberConfirmed = false,
-                            TwoFactorEnabled = false,
-                            UserName = "tstark"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "67cd8799-6640-4952-b58c-4ddd29c0a753",
-                            Email = "admin@test.com",
-                            EmailConfirmed = false,
-                            FirstName = "Christopher",
-                            IsCompanyWorker = false,
-                            LastName = "Nolan",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@TEST.COM",
-                            NormalizedUserName = "CNOLAN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEB8iuHDIL/MXyIlc0SjliGVwAL7iFLQ80nxY/f8jKe0zZMK8YCiMiDo2sPY4QfownA==",
-                            PhoneNumber = "1234567890",
-                            PhoneNumberConfirmed = false,
-                            TwoFactorEnabled = false,
-                            UserName = "cnolan"
-                        });
+            modelBuilder.Entity("ServiCar.Domain.Entities.WorkingTime", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WorkingTimes");
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.UserRole", b =>
@@ -409,6 +612,193 @@ namespace ServiCar.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Appointment", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Point", "Point")
+                        .WithMany("Appointments")
+                        .HasForeignKey("PointId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.User", "User")
+                        .WithMany("Appointments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Point");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Business", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Image", "Image")
+                        .WithOne("Business")
+                        .HasForeignKey("ServiCar.Domain.Entities.Business", "ImageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Image");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Category", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Business", "Business")
+                        .WithMany("Categories")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Business");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Image", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Review", "Review")
+                        .WithMany("Images")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Point", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Business", "Business")
+                        .WithMany("Points")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.Category", "Category")
+                        .WithMany("Points")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.Location", "Location")
+                        .WithMany("Points")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.User", "User")
+                        .WithMany("Points")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.WorkingTime", "WorkingTime")
+                        .WithMany("Points")
+                        .HasForeignKey("WorkingTimeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Business");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Location");
+
+                    b.Navigation("User");
+
+                    b.Navigation("WorkingTime");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Review", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Appointment", "Appointment")
+                        .WithMany("Reviews")
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.Point", "Point")
+                        .WithMany("Reviews")
+                        .HasForeignKey("PointId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ServiCar.Domain.Entities.User", "User")
+                        .WithMany("Reviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Point");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.User", b =>
+                {
+                    b.HasOne("ServiCar.Domain.Entities.Business", "Business")
+                        .WithMany("Workers")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Business");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Appointment", b =>
+                {
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Business", b =>
+                {
+                    b.Navigation("Categories");
+
+                    b.Navigation("Points");
+
+                    b.Navigation("Workers");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Points");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Image", b =>
+                {
+                    b.Navigation("Business")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Location", b =>
+                {
+                    b.Navigation("Points");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Point", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.Review", b =>
+                {
+                    b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Points");
+
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("ServiCar.Domain.Entities.WorkingTime", b =>
+                {
+                    b.Navigation("Points");
                 });
 #pragma warning restore 612, 618
         }

@@ -5,7 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Servicar.Infrastruture.Services;
 using ServiCar.Domain.Entities;
+using ServiCar.Infrastructure.Data;
 using ServiCar.Infrastructure.Persistence;
+using ServiCar.Infrastructure.Services;
 using System.Reflection;
 using System.Text;
 
@@ -55,7 +57,12 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 
+// App Service
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IBusinessService, BusinessService>();
+builder.Services.AddScoped<IPointService, PointService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -96,6 +103,15 @@ var applicationAssembly = Assembly.Load("Servicar.Application");
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(applicationAssembly));
 
 var app = builder.Build();
+
+
+// Seed Data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ServiCarApiContext>();
+    DbInitializer.SeedData(context);
+}
 
 app.MapSwagger().RequireAuthorization();
 
