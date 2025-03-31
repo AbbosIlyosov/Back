@@ -24,55 +24,42 @@ namespace ServiCar.API.Controllers
         }
 
         [HttpPost("create-account")]
-        public async Task<IActionResult> CreateAccount([FromBody] RegistrationDTO model)
+        public async Task<IActionResult> CreateAccount([FromBody] UserRegisterDTO model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid payload");
-
             var result = await _mediator.Send(new RegisterUserCommand(model));
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
+
+            if(!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid payload");
-
             var result = await _mediator.Send(new LoginUserQuery(model));
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
 
-        [HttpPost("assign-role"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignRole([FromBody] AssignRoleDTO model)
+        [HttpPost("switch-to-worker-account"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SwitchToWorkerAccount(int userId)
         {
-            var result = await _mediator.Send(new AssignRoleCommand(model));
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
-        }
-
-        [HttpPost("switch-to-worker-account"), Authorize]
-        public async Task<IActionResult> SwitchToWorkerAccount()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _mediator.Send(new SwitchToWorkerAccountCommand(userId));
 
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
-        }
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
 
-        [HttpPut("update-profile"), Authorize]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDTO model)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _mediator.Send(new UpdateProfileCommand(userId, model));
-
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
-        }
-
-        [HttpPut("delete-user"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteUser([FromBody] string id)
-        {
-            var result = await _mediator.Send(new DeleteUserCommand(id));
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
+            return Ok(result.Data);
         }
 
         //[HttpPost("refresh"), Authorize]

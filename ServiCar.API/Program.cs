@@ -59,6 +59,7 @@ builder.Services.AddControllers();
 
 // App Service
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IBusinessService, BusinessService>();
 builder.Services.AddScoped<IPointService, PointService>();

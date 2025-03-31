@@ -1,19 +1,24 @@
 ﻿using MediatR;
 using Servicar.Domain.DTOs;
+using Servicar.Infrastruture.Services;
 using ServiCar.Domain.DTOs;
+using ServiCar.Domain.Generics;
+using ServiCar.Infrastructure.Services;
 
 namespace Servicar.Application.Features.Auth.Commands
 {
-    public record AssignRoleCommand(AssignRoleDTO dto) : IRequest<ResponseDTO>;
+    public record AssignRoleCommand(AssignRoleDTO Model) : IRequest<Result<string, ErrorDTO>>;
 
-    public class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand, ResponseDTO>
+    public class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand, Result<string, ErrorDTO>>
     {
-        public AssignRoleCommandHandler()
+        private readonly IUserService _userService;
+        public AssignRoleCommandHandler(IUserService userService)
         {
+            _userService = userService;
         }
-        public Task<ResponseDTO> Handle(AssignRoleCommand request, CancellationToken cancellationToken)
+        public async Task<Result<string, ErrorDTO>> Handle(AssignRoleCommand request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _userService.AssignRole(request.Model);
         }
     }
 }

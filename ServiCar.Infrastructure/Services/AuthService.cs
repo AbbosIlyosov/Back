@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Servicar.Domain.DTOs;
 using ServiCar.Domain.DTOs;
 using ServiCar.Domain.Entities;
+using ServiCar.Domain.Generics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,49 +15,51 @@ namespace Servicar.Infrastruture.Services
 {
     public interface IAuthService
     {
-        Task<ResponseDTO> Register(RegistrationDTO model);
-        Task<ResponseDTO> Login(LoginDTO model);
+        Task<Result<string, ErrorDTO>> Register(UserRegisterDTO model);
+        Task<Result<TokenDTO, ErrorDTO>> Login(LoginDTO model);
         (bool, dynamic) Refresh(TokenApiDTO tokenApiModel);
         bool Revoke(string username);
+        Task<Result<string, ErrorDTO>> SwitchToWorkerAccount(int userId);
     }
     public class AuthService : IAuthService
     {
-        private readonly UserManager<User> userManager;
-        private readonly RoleManager<Role> roleManager;
+        private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
 
         public AuthService(UserManager<User> userManager,
-            RoleManager<Role> roleManager,
             IConfiguration configuration)
         {
-            this.userManager = userManager;
-            this.roleManager = roleManager;
+            _userManager = userManager;
             _configuration = configuration;
         }
 
-        public async Task<ResponseDTO> Login(LoginDTO model)
+        public async Task<Result<TokenDTO, ErrorDTO>> Login(LoginDTO model)
         {
-            var response = new ResponseDTO();
-
-            var user = await userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
             {
-                response.IsSuccess = false;
-                response.Message = "User not found.";
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = "User not found."
+                };
 
-                return response;
+                return Result<TokenDTO, ErrorDTO>.Fail(error);
             }
 
-            if (!await userManager.CheckPasswordAsync(user, model.Password))
+            if (!await _userManager.CheckPasswordAsync(user, model.Password))
             {
-                response.IsSuccess = false;
-                response.Message = "Invalid password.";
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = "Wrong credentials."
+                };
 
-                return response;
+                return Result<TokenDTO, ErrorDTO>.Fail(error);
             }
 
-            var userRoles = await userManager.GetRolesAsync(user);
+            var userRoles = await _userManager.GetRolesAsync(user);
 
             var authClaims = new List<Claim>
             {
@@ -72,34 +77,21 @@ namespace Servicar.Infrastruture.Services
             tokenData.UserId = user.Id;
             tokenData.Roles = userRoles.ToList();
 
-            response.IsSuccess = true;
-            response.Message = "User logged in successfully.";
-            response.Data = tokenData;
-
-            return response;
+            return Result<TokenDTO, ErrorDTO>.Success(tokenData);
         }
 
-        public async Task<ResponseDTO> Register(RegistrationDTO model)
+        public async Task<Result<string, ErrorDTO>> Register(UserRegisterDTO model)
         {
-            var response = new ResponseDTO();
-
-            var existingUser = await userManager.FindByEmailAsync(model.Email);
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
             {
-                response.Message = "User already exists.";
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = "User already exists."
+                };
 
-                return response;
-            }
-
-            if (string.IsNullOrEmpty(model.Role))
-            {
-                model.Role = "User";
-            }
-
-            if (!await roleManager.RoleExistsAsync(model.Role))
-            {
-                response.Message = "Role does not exist.";
-                return response;
+                return Result<string, ErrorDTO>.Fail(error);
             }
 
             var newUser = new User
@@ -109,44 +101,40 @@ namespace Servicar.Infrastruture.Services
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 PhoneNumber = model.Phone,
-                IsCompanyWorker = model.Role.ToLower() == "worker",
+                IsCompanyWorker = false,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
-            var result = await userManager.CreateAsync(newUser, model.Password);
+            var result = await _userManager.CreateAsync(newUser, model.Password);
 
             if (!result.Succeeded)
             {
-                response.Message = "User creation failed. Please check user details and try again.";
-                return response;
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = "User creation failed. Please check user details and try again."
+                };
+
+                return Result<string, ErrorDTO>.Fail(error);
             }
 
-            IdentityResult roleAssignResult = await userManager.AddToRoleAsync(newUser, model.Role);
+            IdentityResult roleAssignResult = await _userManager.AddToRoleAsync(newUser, "User");
 
             if (!roleAssignResult.Succeeded)
             {
-                response.Message = roleAssignResult.Errors.FirstOrDefault()?.Description ?? "Failed to assign role.";
-                return response;
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Message = roleAssignResult.Errors.FirstOrDefault()?.Description ?? "Failed to assign role."
+                };
+
+                return Result<string, ErrorDTO>.Fail(error);
             }
 
-            response.IsSuccess = true;
-            response.Message = "User created successfully.";
-            response.Data = new UserDTO
-            {
-                Id = newUser.Id,
-                Username = newUser.UserName,
-                Email = newUser.Email,
-                FirstName = newUser.FirstName,
-                LastName = newUser.LastName,
-                PhoneNumber = newUser.PhoneNumber,
-                IsCompanyWorker = newUser.IsCompanyWorker,
-                Roles = new List<string> { model.Role }
-            };
-
-            return response;
+            return Result<string, ErrorDTO>.Success("User created successfully.");
         }
 
-        private LoginResponseDataDTO GenerateAccessToken(IEnumerable<Claim> claims)
+        private TokenDTO GenerateAccessToken(IEnumerable<Claim> claims)
         {
             var authSiginingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]));
             var _TokenExpiryTimeInMinutes = Convert.ToInt16(_configuration["Jwt:ExpiryTimeInMinute"]);
@@ -162,7 +150,7 @@ namespace Servicar.Infrastruture.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
 
-            var tokenModel = new LoginResponseDataDTO
+            var tokenModel = new TokenDTO
             {
                 AccessToken = tokenHandler.WriteToken(securityToken),
                 ExpireDate = tokenDescriptor.Expires
@@ -235,6 +223,64 @@ namespace Servicar.Infrastruture.Services
             //_userContext.SaveChanges();
 
             return true;
+        }
+
+        public async Task<Result<string, ErrorDTO>> SwitchToWorkerAccount(int userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+
+                if (user == null)
+                {
+                    var error = new ErrorDTO
+                    {
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = "User not found."
+                    };
+
+                    return Result<string, ErrorDTO>.Fail(error);
+                }
+
+                var roleAssignResult = await _userManager.AddToRoleAsync(user, "Worker");
+
+                if (!roleAssignResult.Succeeded)
+                {
+                    var error = new ErrorDTO
+                    {
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = roleAssignResult.Errors.FirstOrDefault()?.Description ?? "Failed to assign role."
+                    };
+
+                    return Result<string, ErrorDTO>.Fail(error);
+                }
+
+                user.IsCompanyWorker = true;
+                var updateResult = await _userManager.UpdateAsync(user);
+
+                if (!updateResult.Succeeded)
+                {
+                    var error = new ErrorDTO
+                    {
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = updateResult.Errors.FirstOrDefault()?.Description ?? "Role assigned but failed to update field isCompanyWorker."
+                    };
+
+                    return Result<string, ErrorDTO>.Fail(error);
+                }
+
+                return Result<string, ErrorDTO>.Success("Switched to worker account successfully.");
+            }
+            catch (Exception ex) 
+            {
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = "Something went wrong. Please check UserId and try again."
+                };
+
+                return Result<string, ErrorDTO>.Fail(error);
+            }
         }
     }
 
