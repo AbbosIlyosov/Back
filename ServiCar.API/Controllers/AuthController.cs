@@ -1,12 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Servicar.Application.DTOs;
 using Servicar.Application.Features.Auth.Commands;
 using Servicar.Application.Features.Auth.Queries;
-using Servicar.Domain.DTOs;
 using ServiCar.Domain.DTOs;
-using System.Security.Claims;
 
 namespace ServiCar.API.Controllers
 {
@@ -28,8 +25,9 @@ namespace ServiCar.API.Controllers
         {
             var result = await _mediator.Send(new RegisterUserCommand(model));
 
-            if(!result.IsSuccess)
+            if (!result.IsSuccess)
             {
+                _logger.LogError("Error creating account: {Error}", result.Error.Message);
                 return StatusCode((int)result.Error.StatusCode, result.Error.Message);
             }
 
@@ -43,6 +41,7 @@ namespace ServiCar.API.Controllers
 
             if (!result.IsSuccess)
             {
+                _logger.LogError("Error logging in: {Error}", result.Error.Message);
                 return StatusCode((int)result.Error.StatusCode, result.Error.Message);
             }
 

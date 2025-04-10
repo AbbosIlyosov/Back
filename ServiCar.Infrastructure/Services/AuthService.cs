@@ -16,7 +16,7 @@ namespace Servicar.Infrastruture.Services
     public interface IAuthService
     {
         Task<Result<string, ErrorDTO>> Register(UserRegisterDTO model);
-        Task<Result<TokenDTO, ErrorDTO>> Login(LoginDTO model);
+        Task<Result<LoginResponseDTO, ErrorDTO>> Login(LoginDTO model);
         (bool, dynamic) Refresh(TokenApiDTO tokenApiModel);
         bool Revoke(string username);
         Task<Result<string, ErrorDTO>> SwitchToWorkerAccount(int userId);
@@ -33,7 +33,7 @@ namespace Servicar.Infrastruture.Services
             _configuration = configuration;
         }
 
-        public async Task<Result<TokenDTO, ErrorDTO>> Login(LoginDTO model)
+        public async Task<Result<LoginResponseDTO, ErrorDTO>> Login(LoginDTO model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
 
@@ -45,7 +45,7 @@ namespace Servicar.Infrastruture.Services
                     Message = "User not found."
                 };
 
-                return Result<TokenDTO, ErrorDTO>.Fail(error);
+                return Result<LoginResponseDTO, ErrorDTO>.Fail(error);
             }
 
             if (!await _userManager.CheckPasswordAsync(user, model.Password))
@@ -56,7 +56,7 @@ namespace Servicar.Infrastruture.Services
                     Message = "Wrong credentials."
                 };
 
-                return Result<TokenDTO, ErrorDTO>.Fail(error);
+                return Result<LoginResponseDTO, ErrorDTO>.Fail(error);
             }
 
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -74,10 +74,25 @@ namespace Servicar.Infrastruture.Services
             }
 
             var tokenData = GenerateAccessToken(authClaims);
-            tokenData.UserId = user.Id;
-            tokenData.Roles = userRoles.ToList();
 
-            return Result<TokenDTO, ErrorDTO>.Success(tokenData);
+            var response = new LoginResponseDTO
+            {
+                AccessToken = tokenData.AccessToken,
+                tokenExpiry = tokenData.TokenExpiry,
+                User = new UserDTO
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Username = user.UserName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    IsCompanyWorker = user.IsCompanyWorker,
+                    Role = userRoles.FirstOrDefault() ?? string.Empty
+                }
+            };
+
+            return Result<LoginResponseDTO, ErrorDTO>.Success(response);
         }
 
         public async Task<Result<string, ErrorDTO>> Register(UserRegisterDTO model)
@@ -153,7 +168,7 @@ namespace Servicar.Infrastruture.Services
             var tokenModel = new TokenDTO
             {
                 AccessToken = tokenHandler.WriteToken(securityToken),
-                ExpireDate = tokenDescriptor.Expires
+                TokenExpiry = tokenDescriptor.Expires ?? DateTime.UtcNow.AddMinutes(5),
             };
 
             return tokenModel;
