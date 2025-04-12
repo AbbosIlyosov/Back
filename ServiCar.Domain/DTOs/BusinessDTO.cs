@@ -38,8 +38,8 @@ namespace ServiCar.Domain.DTOs
     public class BusinessCreateDTO
     {
         public string Name { get; set; }
-        public int? ImageId { get; set; }
         public string AboutUs { get; set; }
+        public byte[] Image { get; set; }
         public ICollection<CategoryDTO> Categories { get; set; }
     }
 

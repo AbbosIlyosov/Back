@@ -60,7 +60,10 @@ namespace ServiCar.Infrastructure.Services
                 var business = new Business
                 {
                     Name = dto.Name,
-                    ImageId = dto.ImageId,
+                    Image = new Image
+                    {
+                        FileData = dto.Image
+                    },
                     AboutUs = dto.AboutUs,
                     Categories = existingCategories
                 };
