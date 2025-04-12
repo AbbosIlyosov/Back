@@ -14,7 +14,7 @@ namespace ServiCar.Domain.DTOs
         public string Status => GetStatusDescription(StatusId);
         public int PointsCount { get; set; }
 
-        public byte[] Image { get; set; }
+        public byte[]? Image { get; set; }
 
         private string GetStatusDescription(BusinessStatus pointStatus)
         {
@@ -33,6 +33,13 @@ namespace ServiCar.Domain.DTOs
             // Fall back to the enum name if no description attribute is found
             return pointStatus.ToString();
         }
+    }
+
+    public class BusinessGridInfoDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public byte[] Logo { get; set; }
     }
 
     public class BusinessCreateDTO

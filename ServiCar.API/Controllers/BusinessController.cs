@@ -92,5 +92,23 @@ namespace ServiCar.API.Controllers
 
             return Ok(result.Data);
         }
+
+        [HttpGet, Route("get-grid-info")]
+        public async Task<IActionResult> GetBusinessGridInfo()
+        {
+            var result = await _mediator.Send(new GetBusinessGridInfoQuery());
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            if (!result.Data.Any())
+            {
+                return NotFound("No businesses found");
+            }
+
+            return Ok(result.Data);
+        }
     }
 }

@@ -12,13 +12,12 @@ namespace ServiCar.Infrastructure.Data
             // Ensure the database exists and is up to date
             context.Database.Migrate();
 
-            // Seed Categories if they don’t exist
             SeedUsers(context);
             SeedRoles(context);
             SeedUserRoles(context);
             SeedWorkingTimes(context);
             SeedLocations(context);
-            //SeedCategories(context);
+            SeedCategories(context);
         }
 
         private static void SeedUsers(ServiCarApiContext context)
@@ -308,7 +307,7 @@ namespace ServiCar.Infrastructure.Data
                 {
                     new Category
                     {
-                        Name = "Auto Repair"
+                        Name = "Repair"
                     },
                     new Category
                     {
@@ -316,11 +315,15 @@ namespace ServiCar.Infrastructure.Data
                     },
                     new Category
                     {
-                        Name = "Engine Maintenance"
+                        Name = "Maintenance"
                     },
                     new Category
                     {
-                        Name = "Tire Replacement"
+                        Name = "Tire"
+                    },
+                    new Category
+                    {
+                        Name = "Fuel"
                     }
                 };
 

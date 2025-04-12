@@ -9,12 +9,12 @@ namespace ServiCar.Infrastructure.Services
 {
     public interface IBusinessService
     {
-        Task<Result<List<BusinessDTO>, ErrorDTO>> GetAllBusinesses();
-        Task<Result<List<BusinessSelectListDTO>, ErrorDTO>> GetBusinessesForSelectList();
-
+        Task<Result<IEnumerable<BusinessDTO>, ErrorDTO>> GetAllBusinesses();
         Task<Result<BusinessDTO, ErrorDTO>> CreateBusiness(BusinessCreateDTO dto);
         Task<Result<string, ErrorDTO>> UpdateBusiness(BusinessUpdateDTO dto);
         Task<Result<string, ErrorDTO>> UpdateBusinessStatus(BusinessStatusUpdateDTO dto);
+        Task<Result<IEnumerable<BusinessSelectListDTO>, ErrorDTO>> GetBusinessesForSelectList();
+        Task<Result<IEnumerable<BusinessGridInfoDTO>, ErrorDTO>> GetBusinessGridInfo();
     }
     public class BusinessService : IBusinessService
     {
@@ -24,7 +24,7 @@ namespace ServiCar.Infrastructure.Services
             _context = context;
         }
 
-        public async Task<Result<List<BusinessDTO>, ErrorDTO>> GetAllBusinesses()
+        public async Task<Result<IEnumerable<BusinessDTO>, ErrorDTO>> GetAllBusinesses()
         {
             try
             {
@@ -38,12 +38,12 @@ namespace ServiCar.Infrastructure.Services
                     StatusId = x.BusinessStatusId
                 }).ToListAsync();
 
-                return Result<List<BusinessDTO>, ErrorDTO>.Success(businesses);
+                return Result<IEnumerable<BusinessDTO>, ErrorDTO>.Success(businesses);
             }
             catch (Exception ex) 
             {
                 var error = new ErrorDTO { StatusCode = HttpStatusCode.BadRequest, Message = "Could not get businesses."};
-                return Result<List<BusinessDTO>, ErrorDTO>.Fail(error);
+                return Result<IEnumerable<BusinessDTO>, ErrorDTO>.Fail(error);
             }
         }
 
@@ -51,7 +51,7 @@ namespace ServiCar.Infrastructure.Services
         {
             try
             {
-                var categoryIds = dto.Categories.Select(c => c.Id).ToList();
+                var categoryIds =  dto.Categories.Select(c => c.Id).ToList();
 
                 var existingCategories = await _context.Categories
                     .Where(c => categoryIds.Contains(c.Id))
@@ -75,7 +75,7 @@ namespace ServiCar.Infrastructure.Services
                 {
                     Id = business.Id,
                     Name = business.Name,
-                    //Image = business.Image.FileData,
+                    Image = business.Image.FileData,
                     AboutUs = business.AboutUs,
                     PointsCount = business.PointsCount,
                     StatusId = business.BusinessStatusId
@@ -143,7 +143,7 @@ namespace ServiCar.Infrastructure.Services
             }
         }
 
-        public async Task<Result<List<BusinessSelectListDTO>, ErrorDTO>> GetBusinessesForSelectList()
+        public async Task<Result<IEnumerable<BusinessSelectListDTO>, ErrorDTO>> GetBusinessesForSelectList()
         {
             try
             {
@@ -153,12 +153,32 @@ namespace ServiCar.Infrastructure.Services
                     Name = x.Name
                 }).ToListAsync();
 
-                return Result<List<BusinessSelectListDTO>, ErrorDTO>.Success(businesses);
+                return Result<IEnumerable<BusinessSelectListDTO>, ErrorDTO>.Success(businesses);
             }
             catch (Exception ex)
             {
                 var error = new ErrorDTO { StatusCode = HttpStatusCode.BadRequest, Message = "Could not get businesses." };
-                return Result<List<BusinessSelectListDTO>, ErrorDTO>.Fail(error);
+                return Result<IEnumerable<BusinessSelectListDTO>, ErrorDTO>.Fail(error);
+            }
+        }
+
+        public async Task<Result<IEnumerable<BusinessGridInfoDTO>, ErrorDTO>> GetBusinessGridInfo()
+        {
+            try
+            {
+                var businesses = await _context.Businesses.Select(x => new BusinessGridInfoDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Logo = x.Image.FileData
+                }).ToListAsync();
+
+                return Result<IEnumerable<BusinessGridInfoDTO>, ErrorDTO>.Success(businesses);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorDTO { StatusCode = HttpStatusCode.BadRequest, Message = "Could not get businesses.", Details= ex.Message };
+                return Result<IEnumerable<BusinessGridInfoDTO>, ErrorDTO>.Fail(error);
             }
         }
     }

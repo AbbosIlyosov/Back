@@ -5,9 +5,9 @@ using ServiCar.Infrastructure.Services;
 
 namespace Servicar.Application.Features.Business.Queries
 {
-    public record GetAllBusinessesQuery : IRequest<Result<List<BusinessDTO>, ErrorDTO>>;
+    public record GetAllBusinessesQuery : IRequest<Result<IEnumerable<BusinessDTO>, ErrorDTO>>;
 
-    public class GetAllBusinessesQueryHandler : IRequestHandler<GetAllBusinessesQuery, Result<List<BusinessDTO>, ErrorDTO>>
+    public class GetAllBusinessesQueryHandler : IRequestHandler<GetAllBusinessesQuery, Result<IEnumerable<BusinessDTO>, ErrorDTO>>
     {
         private readonly IBusinessService _businessService;
         public GetAllBusinessesQueryHandler(IBusinessService businessService)
@@ -15,7 +15,7 @@ namespace Servicar.Application.Features.Business.Queries
             _businessService = businessService;
         }
 
-        public async Task<Result<List<BusinessDTO>, ErrorDTO>> Handle(GetAllBusinessesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<BusinessDTO>, ErrorDTO>> Handle(GetAllBusinessesQuery request, CancellationToken cancellationToken)
         {
             return await _businessService.GetAllBusinesses();
         }
