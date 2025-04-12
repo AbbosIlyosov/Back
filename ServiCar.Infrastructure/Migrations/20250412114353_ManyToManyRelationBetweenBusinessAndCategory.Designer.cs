@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ServiCar.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using ServiCar.Infrastructure.Persistence;
 namespace ServiCar.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiCarApiContext))]
-    partial class ServiCarApiContextModelSnapshot : ModelSnapshot
+    [Migration("20250412114353_ManyToManyRelationBetweenBusinessAndCategory")]
+    partial class ManyToManyRelationBetweenBusinessAndCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

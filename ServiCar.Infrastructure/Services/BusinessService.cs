@@ -10,6 +10,8 @@ namespace ServiCar.Infrastructure.Services
     public interface IBusinessService
     {
         Task<Result<List<BusinessDTO>, ErrorDTO>> GetAllBusinesses();
+        Task<Result<List<BusinessSelectListDTO>, ErrorDTO>> GetBusinessesForSelectList();
+
         Task<Result<BusinessDTO, ErrorDTO>> CreateBusiness(BusinessCreateDTO dto);
         Task<Result<string, ErrorDTO>> UpdateBusiness(BusinessUpdateDTO dto);
         Task<Result<string, ErrorDTO>> UpdateBusinessStatus(BusinessStatusUpdateDTO dto);
@@ -49,12 +51,18 @@ namespace ServiCar.Infrastructure.Services
         {
             try
             {
+                var categoryIds = dto.Categories.Select(c => c.Id).ToList();
+
+                var existingCategories = await _context.Categories
+                    .Where(c => categoryIds.Contains(c.Id))
+                    .ToListAsync();
+
                 var business = new Business
                 {
                     Name = dto.Name,
                     ImageId = dto.ImageId,
                     AboutUs = dto.AboutUs,
-                    Categories = dto.Categories.Select(c => new Category { Name = c.Name }).ToList()
+                    Categories = existingCategories
                 };
 
                 _context.Businesses.Add(business);
@@ -64,7 +72,7 @@ namespace ServiCar.Infrastructure.Services
                 {
                     Id = business.Id,
                     Name = business.Name,
-                    Image = business.Image.FileData,
+                    //Image = business.Image.FileData,
                     AboutUs = business.AboutUs,
                     PointsCount = business.PointsCount,
                     StatusId = business.BusinessStatusId
@@ -129,6 +137,25 @@ namespace ServiCar.Infrastructure.Services
             {
                 var error = new ErrorDTO { StatusCode = HttpStatusCode.BadRequest, Message = "Status could not be updated." };
                 return Result<string, ErrorDTO>.Fail(error);
+            }
+        }
+
+        public async Task<Result<List<BusinessSelectListDTO>, ErrorDTO>> GetBusinessesForSelectList()
+        {
+            try
+            {
+                var businesses = await _context.Businesses.Select(x => new BusinessSelectListDTO
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToListAsync();
+
+                return Result<List<BusinessSelectListDTO>, ErrorDTO>.Success(businesses);
+            }
+            catch (Exception ex)
+            {
+                var error = new ErrorDTO { StatusCode = HttpStatusCode.BadRequest, Message = "Could not get businesses." };
+                return Result<List<BusinessSelectListDTO>, ErrorDTO>.Fail(error);
             }
         }
     }

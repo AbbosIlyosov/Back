@@ -32,7 +32,7 @@ namespace ServiCar.Infrastructure.Services
                 var point = await _context.Points
                     .Where(p => p.Id == pointId &&
                                 p.PointStatusId != PointStatus.Hide)
-                    .Include(p => p.Category)
+                    .Include(p => p.Categories)
                     .Include(p => p.Location)
                     .Include(p => p.Business)
                     .Include(p => p.WorkingTime)
@@ -43,7 +43,7 @@ namespace ServiCar.Infrastructure.Services
                         PointName = p.PointName,
                         IsAppointmentAvailable = p.IsAppointmentAvailable,
                         PointStatusId = p.PointStatusId,
-                        Category = new CategoryDTO { Id = p.CategoryId, Name = p.Category.Name },
+                        Categories = p.Categories.Select(c => new CategoryDTO { Id = c.Id, Name = c.Name }).ToList(),
                         Location = new LocationDTO { Id = p.LocationId, District = p.Location.District, City = p.Location.City, Longitude = p.Location.Longitude, Latitude = p.Location.Latitude },
                         Business = new BusinessDTO { Id = p.BusinessId, Name = p.Business.Name, AboutUs = p.Business.AboutUs, PointsCount = p.Business.PointsCount, StatusId = p.Business.BusinessStatusId },
                         WorkingTime = new WorkingTimeDTO { Id = p.WorkingTime.Id, Name = p.WorkingTime.Name, StartTime = p.WorkingTime.StartTime, EndTime = p.WorkingTime.EndTime },
@@ -70,12 +70,11 @@ namespace ServiCar.Infrastructure.Services
         {
             try
             {
-                var points = await _context.Points
-                            .Where(p => filter.CategoryId == p.CategoryId
+                var points = await _context.Points.Include(p => p.Categories)
+                            .Where(p => p.Categories.Select(c => c.Id).Contains(filter.CategoryId)
                                     && filter.BusinessId == p.BusinessId
                                     && filter.StatusId == p.PointStatusId
                                     && filter.LocationId == p.LocationId)
-                            .Include(p => p.Category)
                             .Include(p => p.Location)
                             .Include(p => p.Business)
                             .Include(p => p.WorkingTime)
@@ -86,16 +85,11 @@ namespace ServiCar.Infrastructure.Services
                                 PointName = p.PointName,
                                 IsAppointmentAvailable = p.IsAppointmentAvailable,
                                 PointStatusId = p.PointStatusId,
-                                Category = new CategoryDTO { Id = p.CategoryId, Name = p.Category.Name },
+                                Categories = p.Categories.Select(c => new CategoryDTO { Id = c.Id, Name = c.Name }).ToList(),
                                 Location = new LocationDTO { Id = p.LocationId, City = p.Location.City, District = p.Location.District, Longitude = p.Location.Longitude, Latitude = p.Location.Latitude },
                                 Business = new BusinessDTO { Id = p.BusinessId, Name = p.Business.Name, AboutUs = p.Business.AboutUs, PointsCount = p.Business.PointsCount, StatusId = p.Business.BusinessStatusId, Image = p.Business.Image.FileData },
                                 WorkingTime = new WorkingTimeDTO { Id = p.WorkingTime.Id, Name = p.WorkingTime.Name, StartTime = p.WorkingTime.StartTime, EndTime = p.WorkingTime.EndTime },
-                                User = new UserDTO { Id = p.UserId, Email = p.User.Email, FirstName = p.User.FirstName, LastName = p.User.LastName, IsCompanyWorker = p.User.IsCompanyWorker },
-                                //CategoryId = p.CategoryId,
-                                //LocationId = p.LocationId,
-                                //BusinessId = p.BusinessId,
-                                //WorkingTimeId = p.WorkingTimeId,
-                                //UserId = p.UserId,
+                                User = new UserDTO { Id = p.UserId, Email = p.User.Email, FirstName = p.User.FirstName, LastName = p.User.LastName, IsCompanyWorker = p.User.IsCompanyWorker }
                             })
                             .ToListAsync();
 
@@ -128,10 +122,10 @@ namespace ServiCar.Infrastructure.Services
                     IsAppointmentAvailable = dto.IsAppointmentAvailable,
                     PointStatusId = dto.PointStatusId,
                     LocationId = dto.LocationId,
-                    CategoryId = dto.CategoryId,
                     BusinessId = dto.BusinessId,
                     WorkingTimeId = dto.WorkingTimeId,
                     UserId = dto.UserId,
+                    Categories = dto.Categories.Select(c => new Category { Id = c.Id, Name = c.Name }).ToList(),
                 };
 
                 _context.Points.Add(point);
@@ -192,10 +186,10 @@ namespace ServiCar.Infrastructure.Services
                     point.LocationId = dto.LocationId ?? 0;
                 }
 
-                if (dto.CategoryId is not null && dto.CategoryId > 0)
-                {
-                    point.CategoryId = dto.CategoryId ?? 0;
-                }
+                //if (dto.CategoryId is not null && dto.CategoryId > 0)
+                //{
+                //    point.CategoryId = dto.CategoryId ?? 0;
+                //}
 
                 if (dto.BusinessId is not null && dto.BusinessId > 0)
                 {

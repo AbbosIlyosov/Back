@@ -45,7 +45,7 @@ namespace ServiCar.Infrastructure.Persistence
                 Point.Property(p => p.PointName).IsRequired();
                 Point.Property(p => p.PointStatusId).IsRequired();
 
-                Point.HasOne(p => p.Category).WithMany(c => c.Points).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.Restrict);
+                Point.HasMany(p => p.Categories).WithMany(c => c.Points);
                 Point.HasOne(p => p.Location).WithMany(l => l.Points).HasForeignKey(p => p.LocationId).OnDelete(DeleteBehavior.Restrict);
                 Point.HasOne(p => p.Business).WithMany(b => b.Points).HasForeignKey(p => p.BusinessId).OnDelete(DeleteBehavior.Restrict);
                 Point.HasOne(p => p.WorkingTime).WithMany(w => w.Points).HasForeignKey(p => p.WorkingTimeId).OnDelete(DeleteBehavior.Restrict);
@@ -58,9 +58,9 @@ namespace ServiCar.Infrastructure.Persistence
             {
                 Business.Property(b => b.Name).IsRequired();
 
-                Business.HasOne(b => b.Image).WithOne(i => i.Business).HasForeignKey<Business>(b => b.ImageId).OnDelete(DeleteBehavior.Restrict); ;
-                Business.HasMany(b => b.Categories).WithOne(p => p.Business).HasForeignKey(p => p.BusinessId).OnDelete(DeleteBehavior.Restrict); ;
-                Business.HasMany(b => b.Workers).WithOne(u => u.Business).HasForeignKey(b => b.BusinessId).OnDelete(DeleteBehavior.Restrict); ;
+                Business.HasOne(b => b.Image).WithOne(i => i.Business).HasForeignKey<Business>(b => b.ImageId).OnDelete(DeleteBehavior.Restrict);
+                Business.HasMany(b => b.Categories).WithMany(p => p.Businesses);
+                Business.HasMany(b => b.Workers).WithOne(u => u.Business).HasForeignKey(b => b.BusinessId).OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<Review>(Review =>

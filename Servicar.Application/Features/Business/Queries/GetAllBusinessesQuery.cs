@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Servicar.Application.Features.Appointment.Queries;
 using ServiCar.Domain.DTOs;
 using ServiCar.Domain.Generics;
 using ServiCar.Infrastructure.Services;

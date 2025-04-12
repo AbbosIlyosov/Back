@@ -14,7 +14,7 @@ namespace ServiCar.Domain.DTOs
         [NotMapped]
         public PointStatus PointStatusId { get; set; }
         public string Status => GetStatusDescription(PointStatusId);
-        public CategoryDTO Category { get; set; }
+        public IEnumerable<CategoryDTO> Categories { get; set; }
         public LocationDTO Location { get; set; }
         public BusinessDTO Business { get; set; }
         public WorkingTimeDTO WorkingTime { get; set; }
@@ -63,8 +63,8 @@ namespace ServiCar.Domain.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "The PointStatusId field is required.")]
         public PointStatus PointStatusId { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "The CategoryId field is required.")]
-        public int CategoryId { get; set; }
+        //[Range(1, int.MaxValue, ErrorMessage = "The CategoryId field is required.")]
+        //public int CategoryId { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "The LocationId field is required.")]
         public int LocationId { get; set; }
@@ -79,6 +79,7 @@ namespace ServiCar.Domain.DTOs
         //public WorkingTimeCreateDTO WorkingTime { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "The UserId field is required.")]
+        public IEnumerable<CategoryDTO> Categories { get; set; }
         public int UserId { get; set; }
     }
 

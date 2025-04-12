@@ -14,4 +14,8 @@
     <ProjectReference Include="..\ServiCar.Infrastructure\ServiCar.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Categories\Commands\" />
+  </ItemGroup>
+
 </Project>

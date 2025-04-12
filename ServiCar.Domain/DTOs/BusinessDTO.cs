@@ -40,7 +40,7 @@ namespace ServiCar.Domain.DTOs
         public string Name { get; set; }
         public int? ImageId { get; set; }
         public string AboutUs { get; set; }
-        public ICollection<CategoryCreateDTO> Categories { get; set; }
+        public ICollection<CategoryDTO> Categories { get; set; }
     }
 
     public class BusinessUpdateDTO
@@ -55,5 +55,11 @@ namespace ServiCar.Domain.DTOs
     {
         public int Id { get; set; }
         public BusinessStatus BusinessStatusId { get; set; }
+    }
+
+    public class BusinessSelectListDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
     }
 }

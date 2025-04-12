@@ -74,5 +74,23 @@ namespace ServiCar.API.Controllers
 
             return Ok(result.Data);
         }
+
+        [HttpGet, Route("get-for-select-list")]
+        public async Task<IActionResult> GetBusinessSelectList()
+        {
+            var result = await _mediator.Send(new GetBusinessSelectListQuery());
+
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Error);
+            }
+
+            if (!result.Data.Any())
+            {
+                return NotFound("No businesses found");
+            }
+
+            return Ok(result.Data);
+        }
     }
 }
