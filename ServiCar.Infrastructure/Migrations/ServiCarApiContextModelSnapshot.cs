@@ -34,7 +34,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasIndex("CategoriesId");
 
-                    b.ToTable("BusinessCategory");
+                    b.ToTable("BusinessCategory", (string)null);
                 });
 
             modelBuilder.Entity("CategoryPoint", b =>
@@ -49,7 +49,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasIndex("PointsId");
 
-                    b.ToTable("CategoryPoint");
+                    b.ToTable("CategoryPoint", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -199,7 +199,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Appointments");
+                    b.ToTable("Appointments", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Business", b =>
@@ -239,7 +239,7 @@ namespace ServiCar.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("Businesses");
+                    b.ToTable("Businesses", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Category", b =>
@@ -262,7 +262,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Image", b =>
@@ -294,7 +294,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasIndex("ReviewId");
 
-                    b.ToTable("Images");
+                    b.ToTable("Images", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Location", b =>
@@ -329,7 +329,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Point", b =>
@@ -378,7 +378,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasIndex("WorkingTimeId");
 
-                    b.ToTable("Points");
+                    b.ToTable("Points", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Review", b =>
@@ -419,7 +419,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews");
+                    b.ToTable("Reviews", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.Role", b =>
@@ -562,7 +562,7 @@ namespace ServiCar.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WorkingTimes");
+                    b.ToTable("WorkingTimes", (string)null);
                 });
 
             modelBuilder.Entity("ServiCar.Domain.Entities.UserRole", b =>

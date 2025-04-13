@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Servicar.Application.Features.Point.Commands;
 using Servicar.Application.Features.Point.Queries;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace ServiCar.API.Controllers
 {
+    //[Authorize]
     [ApiController, Route("api/[controller]")]
     public class PointController : Controller
     {
@@ -53,7 +55,7 @@ namespace ServiCar.API.Controllers
                 return StatusCode((int)result.Error.StatusCode, result.Error.Message);
             }
 
-            return StatusCode((int)HttpStatusCode.Created, result.Data);
+            return Ok(result.Data);
         }
 
         [HttpPut, Route("update")]

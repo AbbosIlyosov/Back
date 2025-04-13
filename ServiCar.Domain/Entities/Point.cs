@@ -5,8 +5,8 @@ namespace ServiCar.Domain.Entities
     public class Point : BaseModel
     {
         public string PointName { get; set; }
-        public bool IsAppointmentAvailable { get; set; }
-        public PointStatus PointStatusId { get; set; }
+        public bool IsAppointmentAvailable { get; set; } = true;
+        public PointStatus PointStatusId { get; set; } = PointStatus.Visible;
         public int LocationId { get; set; }
         public int BusinessId { get; set; }
         public int WorkingTimeId { get; set; }

@@ -9,6 +9,7 @@ using System.Security.Claims;
 
 namespace ServiCar.API.Controllers
 {
+    [ApiController, Route("api/[controller]")]
     public class UserController : Controller
     {
         private readonly IMediator _mediator;

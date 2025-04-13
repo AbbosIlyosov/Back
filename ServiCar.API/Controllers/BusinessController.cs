@@ -28,11 +28,6 @@ namespace ServiCar.API.Controllers
                 return BadRequest(result.Error);
             }
 
-            if (!result.Data.Any()) 
-            {
-                return NotFound("No businesses found");
-            }
-
             return Ok(result.Data);
         }
 
@@ -85,11 +80,6 @@ namespace ServiCar.API.Controllers
                 return BadRequest(result.Error);
             }
 
-            if (!result.Data.Any())
-            {
-                return NotFound("No businesses found");
-            }
-
             return Ok(result.Data);
         }
 
@@ -101,11 +91,6 @@ namespace ServiCar.API.Controllers
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Error);
-            }
-
-            if (!result.Data.Any())
-            {
-                return NotFound("No businesses found");
             }
 
             return Ok(result.Data);

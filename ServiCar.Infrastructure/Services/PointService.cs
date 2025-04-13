@@ -11,7 +11,7 @@ namespace ServiCar.Infrastructure.Services
     public interface IPointService
     {
         Task<Result<PointDTO, ErrorDTO>> GetById(int pointId);
-        Task<Result<List<PointDTO>, ErrorDTO>> GetPoints(PointFilterDTO filter);
+        Task<Result<List<PointGridInfoDTO>, ErrorDTO>> GetPoints(PointFilterDTO filter);
         Task<Result<PointDTO, ErrorDTO>> CreatePoint(CreatePointDTO dto);
         Task<Result<string, ErrorDTO>> UpdatePoint(UpdatePointDTO dto);
         Task<Result<string, ErrorDTO>> DeletePoint(int id);
@@ -20,9 +20,11 @@ namespace ServiCar.Infrastructure.Services
     public class PointService : IPointService
     {
         private readonly ServiCarApiContext _context;
-        public PointService(ServiCarApiContext context)
+        private readonly ICurrentUserService _currentUserService;
+        public PointService(ServiCarApiContext context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<PointDTO, ErrorDTO>> GetById(int pointId)
@@ -66,39 +68,57 @@ namespace ServiCar.Infrastructure.Services
             }
         }
 
-        public async Task<Result<List<PointDTO>, ErrorDTO>> GetPoints(PointFilterDTO filter)
+        public async Task<Result<List<PointGridInfoDTO>, ErrorDTO>> GetPoints(PointFilterDTO filter)
         {
             try
             {
-                var points = await _context.Points.Include(p => p.Categories)
-                            .Where(p => p.Categories.Select(c => c.Id).Contains(filter.CategoryId)
-                                    && filter.BusinessId == p.BusinessId
-                                    && filter.StatusId == p.PointStatusId
-                                    && filter.LocationId == p.LocationId)
-                            .Include(p => p.Location)
-                            .Include(p => p.Business)
-                            .Include(p => p.WorkingTime)
-                            .Include(p => p.User)
-                            .Select(p => new PointDTO
+                var query = _context.Points
+                    .Include(p => p.Categories)
+                    .Include(p => p.Location)
+                    .Include(p => p.Business)
+                        .ThenInclude(b => b.Image)
+                    .Include(p => p.Reviews)
+                    .Include(p => p.WorkingTime)
+                    .Include(p => p.User)
+                    .AsQueryable();
+
+                // Apply filters conditionally
+                if (filter.CategoryId > 0)
+                {
+                    query = query.Where(p => p.Categories.Any(c => c.Id == filter.CategoryId));
+                }
+
+                if (filter.BusinessId > 0)
+                {
+                    query = query.Where(p => p.BusinessId == filter.BusinessId);
+                }
+
+                if (filter.LocationId > 0)
+                {
+                    query = query.Where(p => p.LocationId == filter.LocationId);
+                }
+
+
+                var points = await query
+                            .Select(p => new PointGridInfoDTO
                             {
                                 Id = p.Id,
                                 PointName = p.PointName,
-                                IsAppointmentAvailable = p.IsAppointmentAvailable,
-                                PointStatusId = p.PointStatusId,
-                                Categories = p.Categories.Select(c => new CategoryDTO { Id = c.Id, Name = c.Name }).ToList(),
-                                Location = new LocationDTO { Id = p.LocationId, City = p.Location.City, District = p.Location.District, Longitude = p.Location.Longitude, Latitude = p.Location.Latitude },
-                                Business = new BusinessDTO { Id = p.BusinessId, Name = p.Business.Name, AboutUs = p.Business.AboutUs, PointsCount = p.Business.PointsCount, StatusId = p.Business.BusinessStatusId, Image = p.Business.Image.FileData },
-                                WorkingTime = new WorkingTimeDTO { Id = p.WorkingTime.Id, Name = p.WorkingTime.Name, StartTime = p.WorkingTime.StartTime, EndTime = p.WorkingTime.EndTime },
-                                User = new UserDTO { Id = p.UserId, Email = p.User.Email, FirstName = p.User.FirstName, LastName = p.User.LastName, IsCompanyWorker = p.User.IsCompanyWorker }
+                                Rating = p.Reviews.Any() 
+                                        ? p.Reviews.Sum(r => r.Rating)/p.Reviews.Count()
+                                        : 0,
+                                Image = p.Business.Image.FileData,
+                                WorkingTimeStart = p.WorkingTime.StartTime.ToShortTimeString(),
+                                WorkingTimeEnd = p.WorkingTime.EndTime.ToShortTimeString()
                             })
                             .ToListAsync();
 
-                return Result<List<PointDTO>, ErrorDTO>.Success(points);
+                return Result<List<PointGridInfoDTO>, ErrorDTO>.Success(points);
             }
             catch (Exception ex)
             {
                 var error = new ErrorDTO { StatusCode = HttpStatusCode.BadRequest, Message = "Could not get points." };
-                return Result<List<PointDTO>, ErrorDTO>.Fail(error);
+                return Result<List<PointGridInfoDTO>, ErrorDTO>.Fail(error);
             }
         }
 
@@ -116,16 +136,21 @@ namespace ServiCar.Infrastructure.Services
                     return Result<PointDTO, ErrorDTO>.Fail(error);
                 }
 
+
+                var selectedCategories = await _context.Categories
+                    .Where(c => dto.Categories.Contains(c.Id))
+                    .ToListAsync();
+
+                int.TryParse(_currentUserService.UserId, out int currentUserId);
+
                 var point = new Point
                 {
                     PointName = dto.PointName,
-                    IsAppointmentAvailable = dto.IsAppointmentAvailable,
-                    PointStatusId = dto.PointStatusId,
                     LocationId = dto.LocationId,
                     BusinessId = dto.BusinessId,
                     WorkingTimeId = dto.WorkingTimeId,
-                    UserId = dto.UserId,
-                    Categories = dto.Categories.Select(c => new Category { Id = c.Id, Name = c.Name }).ToList(),
+                    Categories = selectedCategories,
+                    UserId = currentUserId
                 };
 
                 _context.Points.Add(point);

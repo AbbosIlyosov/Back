@@ -41,30 +41,15 @@ namespace ServiCar.Domain.DTOs
 
     public class PointFilterDTO
     {
-        [Range(1, int.MaxValue, ErrorMessage = "The filter property LocationId is required.")]
         public int LocationId { get; set; }
-
-        [Range(1, int.MaxValue, ErrorMessage = "The filter property CategoryId is required.")]
         public int CategoryId { get; set; }
-
-        [Range(1, int.MaxValue, ErrorMessage = "The filter property BusinessId is required.")]
         public int BusinessId { get; set; }
-
-        [Range(1, int.MaxValue, ErrorMessage = "The filter property StatusId is required.")]
-        public PointStatus StatusId { get; set; }
     }
 
     public class CreatePointDTO
     {
         [MinLength(1, ErrorMessage = "PointName cannot be empty.")]
-        //[RegularExpression(@"\S+", ErrorMessage = "PointName cannot be empty or whitespace.")]
         public string PointName { get; set; }
-        public bool IsAppointmentAvailable { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "The PointStatusId field is required.")]
-        public PointStatus PointStatusId { get; set; }
-
-        //[Range(1, int.MaxValue, ErrorMessage = "The CategoryId field is required.")]
-        //public int CategoryId { get; set; }
 
         [Range(1, int.MaxValue, ErrorMessage = "The LocationId field is required.")]
         public int LocationId { get; set; }
@@ -72,15 +57,7 @@ namespace ServiCar.Domain.DTOs
         public int BusinessId { get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "The WorkingTimeId field is required.")]
         public int WorkingTimeId { get; set; }
-
-        //public CategoryCreateDTO Category { get; set; }
-        //public LocationCreateDTO Location { get; set; }
-        //public BusinessCreateDTO Business { get; set; }
-        //public WorkingTimeCreateDTO WorkingTime { get; set; }
-
-        [Range(1, int.MaxValue, ErrorMessage = "The UserId field is required.")]
-        public IEnumerable<CategoryDTO> Categories { get; set; }
-        public int UserId { get; set; }
+        public required IEnumerable<int> Categories { get; set; }
     }
 
     public class UpdatePointDTO
@@ -109,5 +86,15 @@ namespace ServiCar.Domain.DTOs
 
         [Range(1, int.MaxValue, ErrorMessage = "The UserId should be greater than 0.")]
         public int? UserId { get; set; }
+    }
+
+    public class PointGridInfoDTO
+    {
+        public int Id { get; set; }
+        public string PointName { get; set; }
+        public string WorkingTimeStart { get; set; }
+        public string WorkingTimeEnd { get; set; }
+        public int Rating { get; set; }
+        public byte[] Image { get; set; }
     }
 }

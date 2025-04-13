@@ -1,15 +1,14 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Servicar.Application.Features.Categories.Queries;
+using Servicar.Application.Features.WorkingTime;
 
 namespace ServiCar.API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class CategoryController : Controller
+    [ApiController, Route("api/[controller]")]
+    public class WorkingTimeController : Controller
     {
         private readonly IMediator _mediator;
-        public CategoryController(IMediator mediator)
+        public WorkingTimeController(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -17,7 +16,7 @@ namespace ServiCar.API.Controllers
         [HttpGet, Route("get-all")]
         public async Task<IActionResult> GetAll()
         {
-            var result = await _mediator.Send(new GetCategoriesQuery());
+            var result = await _mediator.Send(new GetWorkingTimeQuery());
 
             if (!result.IsSuccess)
             {
