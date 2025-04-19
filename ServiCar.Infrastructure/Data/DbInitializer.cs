@@ -7,28 +7,40 @@ namespace ServiCar.Infrastructure.Data
 {
     public static class DbInitializer
     {
-        public static void SeedData(ServiCarApiContext context)
+        public async static Task SeedData(ServiCarApiContext context, UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             // Ensure the database exists and is up to date
             context.Database.Migrate();
 
-            SeedUsers(context);
-            SeedRoles(context);
-            SeedUserRoles(context);
+            await SeedUsers(userManager, roleManager);
             SeedWorkingTimes(context);
             SeedLocations(context);
             SeedCategories(context);
         }
 
-        private static void SeedUsers(ServiCarApiContext context)
+        private async static Task SeedUsers(UserManager<User> userManager, RoleManager<Role> roleManager)
         {
-            string password = "Test123!";
-            List<User> users = new List<User>();
-            PasswordHasher<User> passwordHasher = new PasswordHasher<User>();
-
-            if (!context.Users.Any(u => u.NormalizedEmail == "USER@TEST.COM"))
+            List<Role> roles = new List<Role>
             {
-                var user = new User()
+                new Role { Name = "User", ConcurrencyStamp = "1", NormalizedName = "USER" },
+                new Role { Name = "Worker", ConcurrencyStamp = "2", NormalizedName = "WORKER" },
+                new Role { Name = "Admin", ConcurrencyStamp = "3", NormalizedName = "ADMIN" }
+            };
+
+            foreach (var role in roles)
+            {
+                bool roleExists = await roleManager.RoleExistsAsync(role.Name);
+
+                if (!roleExists)
+                {
+                    await roleManager.CreateAsync(role);
+                }
+            }
+
+            string password = "Test123!";
+            List<User> users = new List<User>
+            {
+                new User()
                 {
                     UserName = "ldecap",
                     Email = "user@test.com",
@@ -37,16 +49,11 @@ namespace ServiCar.Infrastructure.Data
                     LockoutEnabled = false,
                     PhoneNumber = "1234567890",
                     FirstName = "Leonardo",
-                    LastName = "Decaprio"
-                };
+                    LastName = "Decaprio",
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                },
 
-                user.PasswordHash = passwordHasher.HashPassword(user, password);
-                users.Add(user);
-            }
-
-            if(!context.Users.Any(u => u.NormalizedEmail == "WORKER@TEST.COM"))
-            {
-                var user = new User()
+                new User()
                 {
                     UserName = "tstark",
                     NormalizedUserName = "TSTARK",
@@ -56,16 +63,10 @@ namespace ServiCar.Infrastructure.Data
                     PhoneNumber = "1234567890",
                     FirstName = "Tony",
                     LastName = "Stark",
-                    IsCompanyWorker = true,
-                };
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                },
 
-                user.PasswordHash = passwordHasher.HashPassword(user, password);
-                users.Add(user);
-            }
-
-            if(!context.Users.Any(u => u.NormalizedEmail == "ADMIN@TEST.COM"))
-            {
-                var user = new User()
+                new User()
                 {
                     UserName = "cnolan",
                     NormalizedUserName = "CNOLAN",
@@ -74,82 +75,34 @@ namespace ServiCar.Infrastructure.Data
                     LockoutEnabled = false,
                     PhoneNumber = "1234567890",
                     FirstName = "Christopher",
-                    LastName = "Nolan"
-                };
+                    LastName = "Nolan",
+                    SecurityStamp = Guid.NewGuid().ToString()
+                }
+            };
 
-                user.PasswordHash = passwordHasher.HashPassword(user, password);
-                users.Add(user);
-            }
-
-            if(users.Count > 0)
+            foreach (var user in users)
             {
-                context.Users.AddRange(users);
-                context.SaveChanges();
+                //bool userExists = await userManager.Users.AnyAsync(u => u.NormalizedUserName == user.NormalizedUserName);
+                var existingUser = await userManager.FindByEmailAsync(user.Email);
+
+                if(existingUser is not null)
+                {
+                    continue;
+                }
+
+                await userManager.CreateAsync(user, password);
+
+                string roleName = user.UserName == "cnolan" ? "Admin" : user.UserName == "tstark" ? "Worker" : "User";
+
+                bool isInRole = await userManager.IsInRoleAsync(user, roleName);
+
+                if (!isInRole)
+                {
+                    await userManager.AddToRoleAsync(user, roleName);
+                }
             }
         }
 
-        private static void SeedRoles(ServiCarApiContext context)
-        {
-            List<Role> roles = new List<Role>();
-
-            if(!context.Roles.Any(r => r.NormalizedName == "USER"))
-            {
-                roles.Add(new Role { Name = "User", ConcurrencyStamp = "1", NormalizedName = "USER" });
-            }
-
-            if(!context.Roles.Any(r => r.NormalizedName == "WORKER"))
-            {
-                roles.Add(new Role { Name = "Worker", ConcurrencyStamp = "2", NormalizedName = "WORKER" });
-            }
-
-            if (!context.Roles.Any(r => r.NormalizedName == "ADMIN"))
-            {
-                roles.Add(new Role { Name = "Admin", ConcurrencyStamp = "3", NormalizedName = "ADMIN" });
-            }
-
-            if (roles.Count > 0)
-            {
-                context.Roles.AddRange(roles);
-                context.SaveChanges();
-            }
-        }
-
-        private static void SeedUserRoles(ServiCarApiContext context)
-        {
-            var users = context.Users.ToList();
-            var roles = context.Roles.ToList();
-
-            var user = users.FirstOrDefault(u => u.NormalizedEmail == "USER@TEST.COM");
-            var worker = users.FirstOrDefault(u => u.NormalizedEmail == "WORKER@TEST.COM");
-            var admin = users.FirstOrDefault(u => u.NormalizedEmail == "ADMIN@TEST.COM");
-
-            var userRole = roles.FirstOrDefault(r => r.NormalizedName == "USER");
-            var workerRole = roles.FirstOrDefault(r => r.NormalizedName == "WORKER");
-            var adminRole = roles.FirstOrDefault(r => r.NormalizedName == "ADMIN");
-
-            var userRoles = new List<UserRole>();
-
-            if (user != null && userRole != null && !context.UserRoles.Any(ur => ur.UserId == user.Id && ur.RoleId == userRole.Id))
-            {
-                userRoles.Add(new UserRole() { UserId = user.Id, RoleId = userRole.Id });
-            }
-
-            if (worker != null && workerRole != null && !context.UserRoles.Any(ur => ur.UserId == worker.Id && ur.RoleId == workerRole.Id))
-            {
-                userRoles.Add(new UserRole() { UserId = worker.Id, RoleId = workerRole.Id });
-            }
-
-            if (admin != null && adminRole != null && !context.UserRoles.Any(ur => ur.UserId == admin.Id && ur.RoleId == adminRole.Id))
-            {
-                userRoles.Add(new UserRole() { UserId = admin.Id, RoleId = adminRole.Id });
-            }
-
-            if (userRoles.Count > 0)
-            {
-                context.UserRoles.AddRange(userRoles);
-                context.SaveChanges();
-            }
-        }
 
         private static void SeedWorkingTimes(ServiCarApiContext context)
         {

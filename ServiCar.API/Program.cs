@@ -125,7 +125,10 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ServiCarApiContext>();
-    DbInitializer.SeedData(context);
+    var userManager = services.GetRequiredService<UserManager<User>>();
+    var roleManager = services.GetRequiredService<RoleManager<Role>>();
+
+    await DbInitializer.SeedData(context, userManager, roleManager);
 }
 
 app.MapSwagger().RequireAuthorization();

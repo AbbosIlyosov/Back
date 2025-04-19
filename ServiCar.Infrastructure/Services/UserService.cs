@@ -3,6 +3,7 @@ using Servicar.Domain.DTOs;
 using ServiCar.Domain.DTOs;
 using ServiCar.Domain.Entities;
 using ServiCar.Domain.Generics;
+using ServiCar.Infrastructure.Persistence;
 using System.Net;
 
 namespace ServiCar.Infrastructure.Services
@@ -12,14 +13,17 @@ namespace ServiCar.Infrastructure.Services
         Task<Result<string, ErrorDTO>> UpdateUserProfile(UserUpdateDTO dto);
         Task<Result<string, ErrorDTO>> DeleteUser(int userId);
         Task<Result<string, ErrorDTO>> AssignRole(AssignRoleDTO dto);
+        Task<Result<string, ErrorDTO>> AddWorkerAccount(AddWorkerDTO dto);
     }
 
     public class UserService : IUserService
     {
         private readonly UserManager<User> _userManager;
-        public UserService(UserManager<User> userManager)
+        private readonly ServiCarApiContext _context;
+        public UserService(UserManager<User> userManager, ServiCarApiContext context)
         {
             _userManager = userManager;
+            _context = context;
         }
         public async Task<Result<string, ErrorDTO>> DeleteUser(int userId)
         {
@@ -103,6 +107,46 @@ namespace ServiCar.Infrastructure.Services
                 return Result<string, ErrorDTO>.Success("Role assigned sucessfully");
             }
             catch (Exception ex)
+            {
+                var error = new ErrorDTO
+                {
+                    StatusCode = HttpStatusCode.InternalServerError,
+                    Message = "Something went wrong. Please check the information and try again."
+                };
+
+                return Result<string, ErrorDTO>.Fail(error);
+            }
+        }
+
+        public async Task<Result<string, ErrorDTO>> AddWorkerAccount(AddWorkerDTO dto)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(dto.Email);
+
+                if (user == null) 
+                {
+                    var error = new ErrorDTO
+                    {
+                        StatusCode = HttpStatusCode.BadRequest,
+                        Message = "User not found."
+                    };
+                    return Result<string, ErrorDTO>.Fail(error);
+                }
+
+                if(user.BusinessId != dto.BusinessId)
+                {
+                    user.BusinessId = dto.BusinessId;
+                    await _userManager.UpdateAsync(user);
+                }
+
+                await _userManager.RemoveFromRoleAsync(user, "User");
+                var result = await _userManager.AddToRoleAsync(user, "Worker");
+
+                return Result<string, ErrorDTO>.Success("Worker account created successfully.");
+            }
+
+            catch(Exception ex)
             {
                 var error = new ErrorDTO
                 {

@@ -46,8 +46,9 @@ namespace ServiCar.API.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> UpdateAppointment([FromBody] AppointmentUpdateDTO dto)
         {
-            await _mediator.Send(new UpdateAppointmentCommand(dto));
-            return NoContent();
+            var result = await _mediator.Send(new UpdateAppointmentCommand(dto));
+
+            return result.IsSuccess ? Ok(result.Data) : StatusCode((int)result.Error.StatusCode, result.Error.Message);
         }
 
         [HttpDelete("delete")]
@@ -61,6 +62,32 @@ namespace ServiCar.API.Controllers
             }
 
             return Ok("Appointment deleted successfully.");
+        }
+
+        [HttpGet("get-my-appointment")]
+        public async Task<IActionResult> GetMyAppointment([FromQuery] AppointmentFilterDTO filter)
+        {
+            var result = await _mediator.Send(new GetMyAppointmentQuery(filter));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
+        [HttpGet("get-my-all-appointments")]
+        public async Task<IActionResult> GetMyAllAppointments()
+        {
+            var result = await _mediator.Send(new GetMyAllAppointmentsQuery());
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
         }
     }
 }

@@ -22,8 +22,7 @@ namespace ServiCar.Domain.DTOs
         public string Comment { get; set; }
         [Range(1, 5)]
         public int Rating { get; set; }
-        [Range(1, int.MaxValue, ErrorMessage = "UserId is not valid.")]
-        public int UserId { get; set; }
+
         [Range(1, int.MaxValue, ErrorMessage = "PointId is not valid.")]
         public int PointId { get; set; }
         [Range(1, int.MaxValue, ErrorMessage = "AppointmentId is not valid.")]

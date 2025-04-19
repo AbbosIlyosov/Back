@@ -16,6 +16,19 @@ namespace ServiCar.API.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet, Route("get-all")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _mediator.Send(new GetAllReviewsQuery());
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode((int)result.Error.StatusCode, result.Error.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
         [HttpGet, Route("filtered")]
         public async Task<IActionResult> GetFiltered([FromQuery] ReviewFilterDTO dto)
         {

@@ -47,12 +47,12 @@ namespace ServiCar.API.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
 
-        [HttpPut("add-worker"), Authorize]
-        public async Task<IActionResult> AddWorker([FromBody] UserRegisterDTO model)
+        [HttpPut("add-worker"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddWorker([FromBody] AddWorkerDTO model)
         {
             var result = await _mediator.Send(new AddWorkerCommand(model));
 
-            return result.IsSuccess ? Ok(result) : BadRequest(result);
+            return result.IsSuccess ? Ok(result) : StatusCode((int)result.Error.StatusCode, result.Error.Message);
         }
 
     }

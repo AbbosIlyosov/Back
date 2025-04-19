@@ -2,7 +2,7 @@
 {
     public class ReviewFilterDTO
     {
-        public int SenderId { get; set; }
-        public int ReceiverId { get; set; }
+        public int UserId { get; set; }
+        public int PointId { get; set; }
     }
 }

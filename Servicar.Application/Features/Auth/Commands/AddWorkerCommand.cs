@@ -5,7 +5,7 @@ using ServiCar.Infrastructure.Services;
 
 namespace Servicar.Application.Features.Auth.Commands
 {
-    public record AddWorkerCommand(UserRegisterDTO Model): IRequest<Result<string, ErrorDTO>>;
+    public record AddWorkerCommand(AddWorkerDTO Model): IRequest<Result<string, ErrorDTO>>;
 
     public class AddWorkerCommandHandler : IRequestHandler<AddWorkerCommand, Result<string, ErrorDTO>>
     {
@@ -14,9 +14,9 @@ namespace Servicar.Application.Features.Auth.Commands
         {
            _userService = userService; 
         }
-        public Task<Result<string, ErrorDTO>> Handle(AddWorkerCommand request, CancellationToken cancellationToken)
+        public async Task<Result<string, ErrorDTO>> Handle(AddWorkerCommand request, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _userService.AddWorkerAccount(request.Model);
         }
     }
 }

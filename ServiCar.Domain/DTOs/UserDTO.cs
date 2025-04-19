@@ -25,4 +25,11 @@
     {
         
     }
+
+    public class AddWorkerDTO
+    {
+        public string Email { get; set; }
+        public int BusinessId { get; set; }
+
+    }
 }
